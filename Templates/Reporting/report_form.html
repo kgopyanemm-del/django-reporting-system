@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% block title %}Report{% endblock %}
+{% block nav_report %}active{% endblock %}
+
+{% block content %}
+<div class="container">
+<div class="card">
+    <div class="card-title" data-t="form_title">Submit a Service Delivery Report</div>
+
+    <form method="POST" enctype="multipart/form-data" id="report-form">
+        {% csrf_token %}
+
+        <label data-t="lbl_address">Search your address</label>
+        <div class="search-row" style="margin-bottom:6px">
+            <input type="text" id="addr-display" data-ph="ph_address"
+                   placeholder="Type your street address or suburb..."
+                   oninput="debouncedSearch()" autocomplete="off">
+            <button type="button" class="search-btn" onclick="useGPS()" title="GPS">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+                </svg>
+            </button>
+        </div>
+        <div id="suggestions" class="suggestions-box"></div>
+        <div id="gps-status" style="font-size:11px;margin-bottom:8px;display:none"></div>
+        <input type="hidden" name="location"  id="location-val">
+        <input type="hidden" name="latitude"  id="lat-val">
+        <input type="hidden" name="longitude" id="lng-val">
+
+        <label data-t="lbl_issue_type">Select issue type</label>
+        <select name="category" id="cat-sel" onchange="loadSub()" required>
+            <option value="" data-t="opt_select_type">-- Select issue type --</option>
+            <option value="streetlight">Streetlight</option>
+            <option value="water_leaks">Water Leaks</option>
+            <option value="waste_sanitation">Waste &amp; Sanitation</option>
+            <option value="roads_potholes">Roads &amp; Potholes</option>
+            <option value="environment_health">Environment &amp; Public Health</option>
+            <option value="parks_biodiversity">Parks, Trees &amp; Biodiversity</option>
+            <option value="electricity">Electricity</option>
+        </select>
+
+        <label data-t="lbl_issue_detail">Select the details of issue</label>
+        <select name="sub_issue" id="sub-sel">
+            <option value="" data-t="opt_select_detail">-- Select issue type first --</option>
+        </select>
+
+        <label data-t="lbl_description">Additional information</label>
+        <textarea name="description" id="desc-area" data-ph="ph_description"
+                  placeholder="Describe the problem in as much detail as possible..." required></textarea>
+
+        <label data-t="lbl_municipality">Enter your local municipality</label>
+        <select name="municipality">
+            <option value="" data-t="opt_select_muni">-- Select municipality --</option>
+            <option value="COJ">City of Johannesburg (Gauteng)</option>
+            <option value="COT">City of Tshwane (Gauteng)</option>
+            <option value="EKU">Ekurhuleni (Gauteng)</option>
+            <option value="CoCT">City of Cape Town (Western Cape)</option>
+            <option value="ETH">eThekwini (KwaZulu-Natal)</option>
+            <option value="NMB">Nelson Mandela Bay (Eastern Cape)</option>
+            <option value="MAN">Mangaung (Free State)</option>
+            <option value="BUF">Buffalo City (Eastern Cape)</option>
+            <option value="OTHER">Other</option>
+        </select>
+
+        <label data-t="lbl_status">Status</label>
+        <select name="status">
+            <option value="open"                      data-t="st_open">Open</option>
+            <option value="issue_has_worsened"        data-t="st_worsened">Issue Has Worsened</option>
+            <option value="issue_is_ongoing"          data-t="st_ongoing">Issue Is Ongoing</option>
+            <option value="issue_fixed"               data-t="st_fixed">Issue Fixed</option>
+            <option value="escalated_to_municipality" data-t="st_escalated">Escalated To Municipality</option>
+            <option value="scheduled_for_service"     data-t="st_scheduled">Scheduled For Service</option>
+            <option value="work_in_progress"          data-t="st_wip">Work In Progress</option>
+        </select>
+
+        <label data-t="lbl_photo">Insert picture (optional)</label>
+        <input type="file" name="photo" accept="image/*" style="padding:9px">
+
+        <label data-t="lbl_name">Your name (optional)</label>
+        <input type="text" name="reporter_name" id="name-inp" data-ph="ph_name"
+               placeholder="e.g. Thabo Mokoena">
+
+        <label data-t="lbl_whatsapp">WhatsApp number (for updates)</label>
+        <input type="text" name="whatsapp_number" id="wa-inp" data-ph="ph_whatsapp"
+               placeholder="e.g. 072 345 6789">
+
+        <button type="submit" class="btn btn-primary btn-block" data-t="btn_submit">
+            Submit Report
+        </button>
+    </form>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+var subIssues = {
+    streetlight:        [['light_not_working','Light Not Working'],['light_fitting','Light Fitting Missing/Stolen'],['cable_theft','Cable Theft From Pole'],['pole_damage','Pole Damage'],['light_on','Light On During Day']],
+    water_leaks:        [['water_pipe','Water Pipe Damaged/Leaking'],['water_meter','Water Meter Damage'],['water_outage','Localised Water Outage'],['sewerage_leak','Sewerage Leak']],
+    waste_sanitation:   [['illegal_dumping','Illegal Dumping'],['storm_drain','Storm Drain Blocked'],['missed_collection','Missed Collection Day'],['overflowing_bin','Overflowing Bin']],
+    roads_potholes:     [['pothole','Pothole'],['sinkhole','Sinkhole'],['road_markings','Faded Road Markings'],['traffic_sign','Traffic Sign Damaged'],['pavement_damaged','Pavement Damaged']],
+    environment_health: [['hazardous_waste','Hazardous Waste'],['water_pollution','Water Pollution'],['sewage_outfalls','Sewage Into Rivers'],['oil_spill','Oil/Fuel Spill'],['asbestos_exposure','Asbestos Exposure']],
+    parks_biodiversity: [['trees','Fallen Tree/Dangerous Branches'],['maintenance','Overgrown Verge'],['tree_felling','Illegal Tree Felling'],['playground','Playground Equipment Broken']],
+    electricity:        [['electricity_outage','Localised Electricity Outage'],['illegal_connection','Illegal Connection Suspected'],['substation_fault','Substation Fault Suspected'],['exposed_cable','Exposed Live Cable'],['traffic_lights','Traffic Lights Broken']],
+};
+
+function loadSub() {
+    var cat = document.getElementById('cat-sel').value;
+    var sub = document.getElementById('sub-sel');
+    sub.innerHTML = '<option value="">' + (typeof t === 'function' ? t('opt_select_detail') : '-- Select specific issue --') + '</option>';
+    (subIssues[cat] || []).forEach(function(i) {
+        var o = document.createElement('option');
+        o.value = i[0]; o.textContent = i[1];
+        sub.appendChild(o);
+    });
+}
+
+var searchTimer;
+function debouncedSearch() {
+    clearTimeout(searchTimer);
+    var q = document.getElementById('addr-display').value.trim();
+    if (q.length < 3) { hideSug(); return; }
+    searchTimer = setTimeout(function() { searchAddr(q); }, 500);
+}
+
+function searchAddr(query) {
+    fetch('https://nominatim.openstreetmap.org/search?format=json&countrycodes=za&limit=5&q=' + encodeURIComponent(query), {headers:{'Accept-Language':'en'}})
+    .then(function(r){return r.json();})
+    .then(function(data){
+        var box = document.getElementById('suggestions');
+        box.innerHTML = '';
+        if (!data.length) { hideSug(); return; }
+        data.forEach(function(item) {
+            var div = document.createElement('div');
+            div.className = 'sug-item';
+            div.textContent = item.display_name;
+            div.onclick = function() { pickAddr(item); };
+            box.appendChild(div);
+        });
+        box.style.display = 'block';
+    }).catch(hideSug);
+}
+
+function pickAddr(item) {
+    var short = item.display_name.split(',').slice(0,3).join(',');
+    document.getElementById('addr-display').value  = short;
+    document.getElementById('location-val').value  = short;
+    document.getElementById('lat-val').value       = item.lat;
+    document.getElementById('lng-val').value       = item.lon;
+    hideSug();
+    setStatus('&#10003; ' + short, '#86efac');
+}
+
+function hideSug() { document.getElementById('suggestions').style.display = 'none'; }
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('#addr-display') && !e.target.closest('#suggestions')) hideSug();
+});
+
+function useGPS() {
+    if (!navigator.geolocation) { setStatus(t('gps_error'), '#fca5a5'); return; }
+    setStatus(t('gps_getting'), '#fcd34d');
+    navigator.geolocation.getCurrentPosition(function(pos) {
+        var lat = pos.coords.latitude, lng = pos.coords.longitude;
+        fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+lat+'&lon='+lng)
+        .then(function(r){return r.json();})
+        .then(function(data){
+            var addr = data.display_name ? data.display_name.split(',').slice(0,3).join(',') : 'GPS: '+lat.toFixed(4)+', '+lng.toFixed(4);
+            document.getElementById('addr-display').value = addr;
+            document.getElementById('location-val').value = addr;
+            document.getElementById('lat-val').value = lat;
+            document.getElementById('lng-val').value = lng;
+            setStatus('&#10003; ' + t('gps_found') + ': ' + addr, '#86efac');
+        }).catch(function(){
+            var addr = 'GPS: '+lat.toFixed(4)+', '+lng.toFixed(4);
+            document.getElementById('addr-display').value = addr;
+            document.getElementById('location-val').value = addr;
+            document.getElementById('lat-val').value = lat;
+            document.getElementById('lng-val').value = lng;
+            setStatus('&#10003; ' + t('gps_found'), '#86efac');
+        });
+    }, function(){ setStatus(t('gps_error'), '#fca5a5'); });
+}
+
+function setStatus(msg, color) {
+    var el = document.getElementById('gps-status');
+    el.innerHTML = msg; el.style.color = color; el.style.display = 'block';
+}
+
+document.getElementById('report-form').addEventListener('submit', function(e) {
+    var display = document.getElementById('addr-display').value.trim();
+    if (display && !document.getElementById('location-val').value.trim()) {
+        document.getElementById('location-val').value = display;
+    }
+    if (!document.getElementById('location-val').value.trim()) {
+        e.preventDefault();
+        setStatus('&#10005; ' + t('lbl_address'), '#fca5a5');
+        document.getElementById('addr-display').focus();
+    }
+});
+</script>
+{% endblock %}

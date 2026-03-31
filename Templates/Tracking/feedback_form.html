@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Leave Feedback{% endblock %}
+
+{% block content %}
+<div class="container">
+<div class="card">
+    <div class="card-title">Leave Feedback — {{ report.reference_number }}</div>
+
+    <div style="background:rgba(255,255,255,0.08);border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px">
+        <strong>{{ report.get_category_display }}</strong> — {{ report.get_sub_issue_display }}<br>
+        <span style="opacity:.7;font-size:11px">{{ report.location }}</span>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <label>How satisfied are you with the response? (1–5 stars)</label>
+        <div style="display:flex;gap:8px;margin:8px 0 4px" id="star-row">
+            <span class="star" onclick="rateStar(1)">&#9733;</span>
+            <span class="star" onclick="rateStar(2)">&#9733;</span>
+            <span class="star" onclick="rateStar(3)">&#9733;</span>
+            <span class="star" onclick="rateStar(4)">&#9733;</span>
+            <span class="star" onclick="rateStar(5)">&#9733;</span>
+        </div>
+        <input type="hidden" name="rating" id="rating-val" value="3">
+
+        <label>Was the issue resolved?</label>
+        <select name="resolved" required>
+            <option value="">-- Select --</option>
+            <option value="yes">Yes — fully resolved</option>
+            <option value="partial">Partially resolved</option>
+            <option value="no">No — still not fixed</option>
+            <option value="worse">Made worse</option>
+        </select>
+
+        <label>Your comment</label>
+        <textarea name="comment" placeholder="Tell us about your experience — how long did it take, were officials helpful?"></textarea>
+
+        <label>Your name (optional)</label>
+        <input type="text" name="reporter_name" placeholder="e.g. Nompumelelo Dlamini">
+
+        <button type="submit" class="btn btn-primary btn-block" style="padding:13px;font-size:14px">Submit Feedback</button>
+    </form>
+
+    <a href="{% url 'report_detail' report.pk %}" style="display:block;text-align:center;margin-top:12px;font-size:12px;color:#5bc0f8;text-decoration:none">&larr; Back to report</a>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function rateStar(n) {
+    document.querySelectorAll('.star').forEach(function(s, i) {
+        s.classList.toggle('on', i < n);
+    });
+    document.getElementById('rating-val').value = n;
+}
+rateStar(3);
+</script>
+{% endblock %}

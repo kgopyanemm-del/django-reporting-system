@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Update Report{% endblock %}
+
+{% block content %}
+<div class="container">
+<div class="card">
+    <div class="card-title">Update Report — {{ report.reference_number }}</div>
+
+    <div style="background:rgba(255,255,255,0.08);border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px">
+        <strong>{{ report.get_category_display }}</strong> — {{ report.get_sub_issue_display }}<br>
+        <span style="opacity:.7;font-size:11px">{{ report.location }}</span>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <label>New status</label>
+        <select name="status" required>
+            <option value="open"                        {% if report.status == 'open' %}selected{% endif %}>Open</option>
+            <option value="issue_has_worsened"          {% if report.status == 'issue_has_worsened' %}selected{% endif %}>Issue Has Worsened</option>
+            <option value="issue_is_ongoing"            {% if report.status == 'issue_is_ongoing' %}selected{% endif %}>Issue Is Ongoing</option>
+            <option value="issue_fixed"                 {% if report.status == 'issue_fixed' %}selected{% endif %}>Issue Fixed</option>
+            <option value="escalated_to_municipality"   {% if report.status == 'escalated_to_municipality' %}selected{% endif %}>Escalated To Municipality</option>
+            <option value="scheduled_for_service"       {% if report.status == 'scheduled_for_service' %}selected{% endif %}>Scheduled For Service</option>
+            <option value="work_in_progress"            {% if report.status == 'work_in_progress' %}selected{% endif %}>Work In Progress</option>
+        </select>
+
+        <label>Additional note (optional)</label>
+        <textarea name="note" placeholder="Describe what has changed, who you spoke to, etc."></textarea>
+
+        <label>Your name (optional)</label>
+        <input type="text" name="updated_by" placeholder="e.g. Thabo Mokoena">
+
+        <button type="submit" class="btn btn-primary btn-block" style="padding:13px;font-size:14px">Submit Update</button>
+    </form>
+
+    <a href="{% url 'report_detail' report.pk %}" style="display:block;text-align:center;margin-top:12px;font-size:12px;color:#5bc0f8;text-decoration:none">&larr; Back to report</a>
+</div>
+</div>
+{% endblock %}

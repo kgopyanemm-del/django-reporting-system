@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block title %}All Reports{% endblock %}
+{% block nav_list %}active{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div style="font-size:17px;font-weight:700">All Reports</div>
+        <a href="{% url 'report_issue' %}" class="btn btn-primary" style="padding:9px 16px;font-size:12px">+ New Report</a>
+    </div>
+
+    <!-- SEARCH BAR — fully working -->
+    <form method="GET" action="{% url 'report_list' %}" id="filter-form">
+        <div class="search-row" style="margin-bottom:12px">
+            <input type="text" name="province" id="province-input"
+                   value="{{ province }}"
+                   placeholder="Search province or area e.g. Free State, Botshabelo...">
+            <button type="submit" class="search-btn">&#128269;</button>
+        </div>
+
+        <!-- Province quick-select buttons -->
+        <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px" id="prov-btns">
+            {% for p in provinces %}
+            <button type="button"
+                    onclick="selectProvince('{{ p }}')"
+                    style="padding:6px 14px;border-radius:20px;font-size:12px;border:1px solid rgba(255,255,255,0.3);background:{% if province == p %}rgba(255,255,255,0.3){% else %}transparent{% endif %};color:#fff;cursor:pointer;transition:all .2s"
+                    class="prov-btn {% if province == p %}prov-sel{% endif %}">
+                {{ p }}
+            </button>
+            {% endfor %}
+            {% if province %}
+            <button type="button" onclick="clearProvince()"
+                    style="padding:6px 14px;border-radius:20px;font-size:12px;border:1px solid rgba(239,68,68,0.5);background:rgba(239,68,68,0.2);color:#fca5a5;cursor:pointer">
+                &#10005; Clear
+            </button>
+            {% endif %}
+        </div>
+
+        <!-- Category and Status filters -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+            <select name="category" onchange="this.form.submit()" style="flex:1;min-width:140px;padding:9px 10px;font-size:12px">
+                <option value="">All Categories</option>
+                <option value="streetlight"        {% if category == 'streetlight' %}selected{% endif %}>Streetlight</option>
+                <option value="water_leaks"        {% if category == 'water_leaks' %}selected{% endif %}>Water Leaks</option>
+                <option value="waste_sanitation"   {% if category == 'waste_sanitation' %}selected{% endif %}>Waste &amp; Sanitation</option>
+                <option value="roads_potholes"     {% if category == 'roads_potholes' %}selected{% endif %}>Roads &amp; Potholes</option>
+                <option value="environment_health" {% if category == 'environment_health' %}selected{% endif %}>Environment</option>
+                <option value="parks_biodiversity" {% if category == 'parks_biodiversity' %}selected{% endif %}>Parks &amp; Trees</option>
+                <option value="electricity"        {% if category == 'electricity' %}selected{% endif %}>Electricity</option>
+            </select>
+            <select name="status" onchange="this.form.submit()" style="flex:1;min-width:140px;padding:9px 10px;font-size:12px">
+                <option value="">All Statuses</option>
+                <option value="open"                      {% if status == 'open' %}selected{% endif %}>Open</option>
+                <option value="work_in_progress"          {% if status == 'work_in_progress' %}selected{% endif %}>Work In Progress</option>
+                <option value="issue_fixed"               {% if status == 'issue_fixed' %}selected{% endif %}>Fixed</option>
+                <option value="escalated_to_municipality" {% if status == 'escalated_to_municipality' %}selected{% endif %}>Escalated</option>
+                <option value="scheduled_for_service"     {% if status == 'scheduled_for_service' %}selected{% endif %}>Scheduled</option>
+                <option value="issue_has_worsened"        {% if status == 'issue_has_worsened' %}selected{% endif %}>Worsened</option>
+            </select>
+        </div>
+    </form>
+
+    <div style="font-size:12px;opacity:.6;margin-bottom:12px">
+        {{ reports|length }} report(s)
+        {% if province %} in <strong>{{ province }}</strong>{% endif %}
+        {% if category %} · category: <strong>{{ category }}</strong>{% endif %}
+        {% if status %}   · status: <strong>{{ status }}</strong>{% endif %}
+    </div>
+
+    {% for report in reports %}
+    <div class="report-card {% if report.status == 'open' or report.status == 'issue_has_worsened' %}rc-open{% elif report.status == 'issue_fixed' %}rc-fixed{% else %}rc-prog{% endif %}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+            <div style="font-size:13px;font-weight:700;color:#5bc0f8">{{ report.reference_number }}</div>
+            {% if report.status == 'open' or report.status == 'issue_has_worsened' %}
+                <span class="badge badge-open">{{ report.get_status_display }}</span>
+            {% elif report.status == 'issue_fixed' %}
+                <span class="badge badge-fixed">{{ report.get_status_display }}</span>
+            {% else %}
+                <span class="badge badge-prog">{{ report.get_status_display }}</span>
+            {% endif %}
+        </div>
+        <div style="font-size:13px;margin-bottom:5px;font-weight:600">
+            {{ report.get_category_display }}
+            {% if report.sub_issue %} — {{ report.get_sub_issue_display }}{% endif %}
+        </div>
+        <div style="font-size:12px;opacity:.65;margin-bottom:10px">
+            &#128205; {{ report.location }} &nbsp;·&nbsp; {{ report.submitted_at|date:"d M Y" }}
+        </div>
+        <a href="{% url 'report_detail' report.pk %}" style="font-size:12px;color:#5bc0f8;text-decoration:none;font-weight:600">
+            View details &rarr;
+        </a>
+    </div>
+    {% empty %}
+    <div style="text-align:center;padding:50px 0;opacity:.6">
+        <div style="font-size:36px;margin-bottom:12px">&#128203;</div>
+        <div style="font-size:15px">No reports found{% if province %} in {{ province }}{% endif %}.</div>
+        <a href="{% url 'report_issue' %}" class="btn btn-primary" style="margin-top:16px;display:inline-block">
+            Submit the first report
+        </a>
+    </div>
+    {% endfor %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function selectProvince(name) {
+    document.getElementById('province-input').value = name;
+    document.getElementById('filter-form').submit();
+}
+
+function clearProvince() {
+    document.getElementById('province-input').value = '';
+    document.getElementById('filter-form').submit();
+}
+
+// Highlight selected province button
+document.querySelectorAll('.prov-btn').forEach(function(btn) {
+    btn.addEventListener('mouseenter', function() {
+        this.style.background = 'rgba(255,255,255,0.2)';
+        this.style.borderColor = '#fff';
+    });
+    btn.addEventListener('mouseleave', function() {
+        if (!this.classList.contains('prov-sel')) {
+            this.style.background = 'transparent';
+            this.style.borderColor = 'rgba(255,255,255,0.3)';
+        }
+    });
+});
+</script>
+{% endblock %}

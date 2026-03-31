@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}Report {{ report.reference_number }}{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <a href="{% url 'report_list' %}" style="font-size:12px;color:#5bc0f8;text-decoration:none;display:inline-block;margin-bottom:14px">&larr; Back to all reports</a>
+
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+            <div>
+                <div style="font-size:18px;font-weight:700">{{ report.reference_number }}</div>
+                <div style="font-size:13px;opacity:.75;margin-top:3px">Submitted {{ report.submitted_at|date:"d M Y, H:i" }}</div>
+            </div>
+            {% if report.status == 'open' %}
+                <span class="badge badge-open">{{ report.get_status_display }}</span>
+            {% elif report.status == 'issue_fixed' %}
+                <span class="badge badge-fixed">{{ report.get_status_display }}</span>
+            {% else %}
+                <span class="badge badge-prog">{{ report.get_status_display }}</span>
+            {% endif %}
+        </div>
+
+        <table style="width:100%;font-size:13px;border-collapse:collapse">
+            <tr><td style="opacity:.65;padding:5px 0;width:35%">Category</td><td style="font-weight:600">{{ report.get_category_display }}</td></tr>
+            <tr><td style="opacity:.65;padding:5px 0">Issue</td><td style="font-weight:600">{{ report.get_sub_issue_display }}</td></tr>
+            <tr><td style="opacity:.65;padding:5px 0">Location</td><td>{{ report.location }}</td></tr>
+            {% if report.municipality %}<tr><td style="opacity:.65;padding:5px 0">Municipality</td><td>{{ report.get_municipality_display }}</td></tr>{% endif %}
+            {% if report.reporter_name %}<tr><td style="opacity:.65;padding:5px 0">Reporter</td><td>{{ report.reporter_name }}</td></tr>{% endif %}
+            {% if report.whatsapp_number %}<tr><td style="opacity:.65;padding:5px 0">WhatsApp</td><td>{{ report.whatsapp_number }}</td></tr>{% endif %}
+        </table>
+
+        {% if report.description %}
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.1)">
+            <div style="font-size:11px;opacity:.65;margin-bottom:5px">Description</div>
+            <div style="font-size:13px;line-height:1.6">{{ report.description }}</div>
+        </div>
+        {% endif %}
+
+        {% if report.photo %}
+        <div style="margin-top:12px">
+            <img src="{{ report.photo.url }}" style="max-width:100%;border-radius:8px">
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-title">Status History</div>
+        <div class="prog-row"><div class="dot d-done"></div><div><div class="pt">Report received</div><div class="ps">{{ report.submitted_at|date:"d M Y, H:i" }}</div></div></div>
+        {% for u in updates %}
+        <div class="prog-row">
+            <div class="dot {% if forloop.last %}d-act{% else %}d-done{% endif %}"></div>
+            <div>
+                <div class="pt">{{ u.get_new_status_display }}</div>
+                <div class="ps">{{ u.updated_at|date:"d M Y, H:i" }} · Updated by {{ u.updated_by }}</div>
+                {% if u.note %}<div style="font-size:12px;margin-top:3px;opacity:.8">{{ u.note }}</div>{% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div style="font-size:13px;opacity:.6">No status updates yet.</div>
+        {% endfor %}
+    </div>
+
+    <div class="card">
+        <div class="card-title">Community Feedback</div>
+        {% for f in feedback %}
+        <div style="border-left:3px solid #22c55e;padding:10px 14px;margin-bottom:10px;background:rgba(34,197,94,0.08);border-radius:0 8px 8px 0">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                <span style="color:#fcd34d;font-size:16px">{% for i in '12345' %}{% if forloop.counter <= f.rating %}&#9733;{% else %}&#9734;{% endif %}{% endfor %}</span>
+                <span class="badge badge-{% if f.resolved == 'yes' %}fixed{% elif f.resolved == 'no' %}open{% else %}other{% endif %}">{{ f.get_resolved_display }}</span>
+            </div>
+            {% if f.comment %}<div style="font-size:13px;margin-bottom:4px">{{ f.comment }}</div>{% endif %}
+            <div style="font-size:11px;opacity:.6">{% if f.reporter_name %}{{ f.reporter_name }} · {% endif %}{{ f.submitted_at|date:"d M Y" }}</div>
+        </div>
+        {% empty %}
+        <div style="font-size:13px;opacity:.6">No feedback yet.</div>
+        {% endfor %}
+    </div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
+        <a href="{% url 'update_status'   report.pk %}" class="btn btn-primary">Update Status</a>
+        <a href="{% url 'submit_feedback' report.pk %}" class="btn btn-outline">Leave Feedback</a>
+        <a href="{% url 'track_home' %}"               class="btn btn-outline">Track Another</a>
+    </div>
+</div>
+{% endblock %}

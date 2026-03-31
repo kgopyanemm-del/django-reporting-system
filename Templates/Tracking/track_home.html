@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}Track Your Report{% endblock %}
+{% block nav_track %}active{% endblock %}
+
+{% block content %}
+<div class="container">
+<div class="card">
+    <div class="card-title">Track Your Report</div>
+
+    <form method="POST">
+        {% csrf_token %}
+        <label>Enter your reference number</label>
+        <div class="search-bar">
+            <input type="text" name="reference_number" placeholder="e.g. CF-2841" style="flex:1" required>
+            <button type="submit" class="search-btn">Track</button>
+        </div>
+    </form>
+
+    {% if error %}
+    <div class="alert-error" style="margin-top:14px">{{ error }}</div>
+    {% endif %}
+
+    {% if report %}
+    <div style="margin-top:20px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+            <div>
+                <div style="font-size:16px;font-weight:700">{{ report.reference_number }}</div>
+                <div style="font-size:12px;opacity:.7;margin-top:3px">{{ report.get_category_display }} — {{ report.get_sub_issue_display }}</div>
+                <div style="font-size:11px;opacity:.6;margin-top:2px">{{ report.location }}</div>
+            </div>
+            {% if report.status == 'open' %}
+                <span class="badge badge-open">{{ report.get_status_display }}</span>
+            {% elif report.status == 'issue_fixed' %}
+                <span class="badge badge-fixed">{{ report.get_status_display }}</span>
+            {% else %}
+                <span class="badge badge-prog">{{ report.get_status_display }}</span>
+            {% endif %}
+        </div>
+
+        <div style="font-size:12px;font-weight:600;opacity:.7;margin-bottom:8px">Progress</div>
+        <div class="prog-row"><div class="dot d-done"></div><div><div class="pt">Report received</div><div class="ps">{{ report.submitted_at|date:"d M Y, H:i" }}</div></div></div>
+
+        {% for update in report.status_updates.all %}
+        <div class="prog-row">
+            <div class="dot {% if forloop.last %}d-act{% else %}d-done{% endif %}"></div>
+            <div>
+                <div class="pt">{{ update.get_new_status_display }}</div>
+                <div class="ps">{{ update.updated_at|date:"d M Y, H:i" }}{% if update.note %} · {{ update.note }}{% endif %}</div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+            <a href="{% url 'report_detail'   report.pk %}" class="btn btn-primary" style="font-size:12px;padding:8px 14px">Full details</a>
+            <a href="{% url 'update_status'   report.pk %}" class="btn btn-outline"  style="font-size:12px;padding:8px 14px">Update report</a>
+            <a href="{% url 'submit_feedback' report.pk %}" class="btn btn-outline"  style="font-size:12px;padding:8px 14px">Leave feedback</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+</div>
+{% endblock %}

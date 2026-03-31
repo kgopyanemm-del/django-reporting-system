@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Report Submitted{% endblock %}
+
+{% block content %}
+<div class="container" style="text-align:center;padding-top:40px">
+    <div style="font-size:48px;margin-bottom:16px">&#10003;</div>
+    <h2 style="font-size:22px;font-weight:700;margin-bottom:8px">Report Submitted!</h2>
+    <p style="opacity:.8;margin-bottom:20px">Your report has been received and will be reviewed.</p>
+
+    <div style="background:rgba(255,255,255,0.1);border-radius:12px;padding:20px;margin-bottom:20px;display:inline-block;min-width:260px">
+        <div style="font-size:12px;opacity:.7;margin-bottom:6px">Your reference number</div>
+        <div style="font-size:28px;font-weight:700;color:#86efac;letter-spacing:2px">{{ report.reference_number }}</div>
+        <div style="font-size:11px;opacity:.6;margin-top:6px">Save this number to track your report</div>
+    </div>
+
+    <div style="background:rgba(255,255,255,0.08);border-radius:10px;padding:14px;text-align:left;margin-bottom:20px">
+        <div style="font-size:12px;opacity:.7;margin-bottom:10px;font-weight:600">Report Summary</div>
+        <table style="width:100%;font-size:13px;border-collapse:collapse">
+            <tr><td style="opacity:.65;padding:4px 0;width:40%">Category</td><td style="font-weight:600">{{ report.get_category_display }}</td></tr>
+            <tr><td style="opacity:.65;padding:4px 0">Issue</td><td style="font-weight:600">{{ report.get_sub_issue_display }}</td></tr>
+            <tr><td style="opacity:.65;padding:4px 0">Location</td><td style="font-weight:600">{{ report.location }}</td></tr>
+            <tr><td style="opacity:.65;padding:4px 0">Status</td><td><span class="badge badge-open">{{ report.get_status_display }}</span></td></tr>
+            <tr><td style="opacity:.65;padding:4px 0">Submitted</td><td style="font-weight:600">{{ report.submitted_at|date:"d M Y, H:i" }}</td></tr>
+        </table>
+    </div>
+
+    {% if report.whatsapp_number %}
+    <div style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:10px;font-size:13px;margin-bottom:16px">
+        WhatsApp updates will be sent to {{ report.whatsapp_number }}
+    </div>
+    {% endif %}
+
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+        <a href="{% url 'track_home' %}" class="btn btn-primary">Track this report</a>
+        <a href="{% url 'report_issue' %}" class="btn btn-outline">Report another issue</a>
+        <a href="{% url 'report_list' %}" class="btn btn-outline">View all reports</a>
+    </div>
+</div>
+{% endblock %}

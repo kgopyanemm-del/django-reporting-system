@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en" id="html-root">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CityMenderSA</title>
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:Arial,sans-serif;background:#0e4a6e;min-height:100vh;color:#fff}
+        nav{background:#0a3a57;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;border-bottom:1px solid rgba(255,255,255,0.1)}
+        .logo{font-size:18px;font-weight:700;color:#fff;text-decoration:none}
+        .nav-links{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+        .nav-btn{padding:8px 18px;border-radius:7px;border:1.5px solid rgba(255,255,255,0.35);background:transparent;color:#fff;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block;transition:all .2s}
+        .nav-btn:hover{background:rgba(255,255,255,0.15)}
+        .nav-btn.active{background:#fff;color:#0a3a57;border-color:#fff}
+        .lang-wrap{position:relative}
+        .lang-btn{padding:8px 12px;border-radius:7px;border:1.5px solid rgba(255,255,255,0.35);background:transparent;color:#fff;cursor:pointer;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
+        .lang-btn:hover,.lang-btn.open{background:rgba(255,255,255,0.15)}
+        .lang-dropdown{display:none;position:absolute;top:calc(100% + 8px);right:0;background:#0a3a57;border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:12px;width:230px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.5)}
+        .lang-dropdown.open{display:block}
+        .lang-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+        .lang-item{padding:8px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);color:#fff;font-size:12px;cursor:pointer;text-align:center;transition:all .2s}
+        .lang-item:hover{background:#1a7bbf;border-color:#1a7bbf}
+        .lang-item.sel{background:#1a7bbf;border-color:#1a7bbf;font-weight:700}
+        .lang-head{font-size:10px;opacity:.55;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+        .container{max-width:620px;margin:auto;padding:20px 16px}
+        .card{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:20px;margin-bottom:14px}
+        .card-title{font-size:15px;font-weight:700;margin-bottom:16px}
+        label{display:block;font-size:11px;font-weight:600;color:rgba(255,255,255,0.65);margin-bottom:5px;margin-top:14px}
+        input[type=text],input[type=file],select,textarea{width:100%;padding:11px 13px;border-radius:8px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.1);color:#fff;font-size:14px;outline:none;font-family:Arial,sans-serif;transition:border-color .2s}
+        select option{background:#0a3a57;color:#fff}
+        textarea{min-height:90px;resize:vertical}
+        input::placeholder,textarea::placeholder{color:rgba(255,255,255,0.4)}
+        input:focus,select:focus,textarea:focus{border-color:#5bc0f8;background:rgba(255,255,255,0.15)}
+        .btn{display:inline-block;padding:11px 22px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;transition:all .2s;text-align:center}
+        .btn-primary{background:#1a7bbf;color:#fff}
+        .btn-primary:hover{background:#1568a3}
+        .btn-white{background:#fff;color:#0a3a57}
+        .btn-white:hover{background:#e8f4ff}
+        .btn-outline{background:rgba(255,255,255,0.1);color:#fff;border:1.5px solid rgba(255,255,255,0.3)}
+        .btn-outline:hover{background:rgba(255,255,255,0.2)}
+        .btn-block{display:block;width:100%;margin-top:16px;padding:13px;font-size:14px}
+        .search-row{display:flex;gap:8px}
+        .search-row input{flex:1}
+        .search-btn{padding:11px 16px;border-radius:8px;border:none;background:#1a7bbf;color:#fff;cursor:pointer;font-size:16px;flex-shrink:0}
+        .badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;display:inline-block}
+        .badge-open{background:rgba(239,68,68,.3);color:#fca5a5}
+        .badge-prog{background:rgba(245,158,11,.3);color:#fcd34d}
+        .badge-fixed{background:rgba(34,197,94,.3);color:#86efac}
+        .badge-other{background:rgba(255,255,255,.15);color:#fff}
+        .prog-row{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.08)}
+        .prog-row:last-child{border:none}
+        .dot{width:16px;height:16px;border-radius:50%;flex-shrink:0;margin-top:3px}
+        .d-done{background:#22c55e}.d-act{background:#f59e0b}
+        .d-pend{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3)}
+        .pt{font-size:13px;font-weight:600}.ps{font-size:11px;opacity:.6;margin-top:2px}
+        .report-card{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:14px;margin-bottom:10px;border-left:4px solid rgba(255,255,255,0.2)}
+        .rc-open{border-left-color:#ef4444}.rc-fixed{border-left-color:#22c55e}.rc-prog{border-left-color:#f59e0b}
+        .star{font-size:24px;cursor:pointer;color:rgba(255,255,255,0.2);transition:color .15s}
+        .star.on{color:#fcd34d}
+        .alert-err{background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.4);border-radius:8px;padding:12px 14px;font-size:13px;margin-bottom:14px;color:#fca5a5}
+        .footer-bar{background:#0a3a57;padding:14px 20px;text-align:center;font-size:12px;opacity:.65;margin-top:40px;border-top:1px solid rgba(255,255,255,0.08)}
+        .suggestions-box{background:#0a3a57;border:1px solid rgba(255,255,255,0.2);border-radius:8px;display:none;margin-bottom:6px;max-height:180px;overflow-y:auto}
+        .sug-item{padding:10px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08)}
+        .sug-item:hover{background:rgba(255,255,255,0.1)}
+    </style>
+</head>
+<body>
+
+<nav>
+    <a class="logo" href="{% url 'home' %}" data-t="logo">CityMenderSA</a>
+    <div class="nav-links">
+        <a class="nav-btn {% block nav_home %}{% endblock %}" href="{% url 'home' %}"          data-t="nav_home">Home</a>
+        <a class="nav-btn {% block nav_report %}{% endblock %}" href="{% url 'report_issue' %}" data-t="nav_report">Report</a>
+        <a class="nav-btn {% block nav_track %}{% endblock %}" href="{% url 'track_home' %}"   data-t="nav_track">Track</a>
+        <a class="nav-btn {% block nav_list %}{% endblock %}" href="{% url 'report_list' %}"   data-t="nav_list">All Reports</a>
+        <div class="lang-wrap">
+            <button class="lang-btn" id="lang-btn" onclick="toggleLang(event)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <span id="lang-label">EN</span> &#9660;
+            </button>
+            <div class="lang-dropdown" id="lang-dropdown">
+                <div class="lang-head">Choose your language</div>
+                <div class="lang-grid">
+                    <div class="lang-item sel" onclick="setLang('EN',this)">English</div>
+                    <div class="lang-item" onclick="setLang('ZU',this)">isiZulu</div>
+                    <div class="lang-item" onclick="setLang('XH',this)">isiXhosa</div>
+                    <div class="lang-item" onclick="setLang('AF',this)">Afrikaans</div>
+                    <div class="lang-item" onclick="setLang('ST',this)">Sesotho</div>
+                    <div class="lang-item" onclick="setLang('TN',this)">Setswana</div>
+                    <div class="lang-item" onclick="setLang('SS',this)">Siswati</div>
+                    <div class="lang-item" onclick="setLang('VE',this)">Tshivenda</div>
+                    <div class="lang-item" onclick="setLang('TS',this)">Xitsonga</div>
+                    <div class="lang-item" onclick="setLang('NR',this)">isiNdebele</div>
+                    <div class="lang-item" onclick="setLang('NS',this)">Sepedi</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+{% block content %}{% endblock %}
+
+<div class="footer-bar">
+    CityMenderSA &nbsp;|&nbsp; <span data-t="footer_contact">Contact</span>: info@citymendersa.co.za &nbsp;|&nbsp; WhatsApp: 060 000 0000
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TRANSLATION ENGINE — all 11 languages, all page text
+════════════════════════════════════════════════════════════ -->
+<script>
+var LANG = {
+  EN:{
+    logo:'CityMenderSA',
+    nav_home:'Home', nav_report:'Report', nav_track:'Track', nav_list:'All Reports',
+    footer_contact:'Contact',
+    // Home page
+    hero_title:'Report & Track Service Issues',
+    hero_sub:'Helping South African communities report water leaks, potholes, electricity faults and more directly to the right municipality.',
+    btn_report_here:'Report Here',
+    btn_report_issue:'Report Issue',
+    btn_track:'Track Report',
+    btn_all_reports:'All Reports',
+    lbl_total:'Total Reports', lbl_open:'Open Issues', lbl_fixed:'Issues Fixed',
+    // Report form
+    form_title:'Submit a Service Delivery Report',
+    lbl_address:'Search your address',
+    ph_address:'Type your street address or suburb...',
+    lbl_issue_type:'Select issue type',
+    lbl_issue_detail:'Select the details of issue',
+    lbl_description:'Additional information',
+    ph_description:'Describe the problem in as much detail as possible...',
+    lbl_municipality:'Enter your local municipality',
+    lbl_status:'Status',
+    lbl_photo:'Insert picture (optional)',
+    lbl_name:'Your name (optional)',
+    ph_name:'e.g. Thabo Mokoena',
+    lbl_whatsapp:'WhatsApp number (for updates)',
+    ph_whatsapp:'e.g. 072 345 6789',
+    btn_submit:'Submit Report',
+    opt_select_type:'-- Select issue type --',
+    opt_select_detail:'-- Select issue type first --',
+    opt_select_muni:'-- Select municipality --',
+    // Track page
+    track_title:'Track Your Report',
+    lbl_ref:'Enter your reference number',
+    ph_ref:'e.g. CF-2841',
+    btn_track_now:'Track',
+    // Report list
+    list_title:'All Reports',
+    lbl_search_prov:'Search province or area...',
+    lbl_all_cat:'All Categories',
+    lbl_all_status:'All Statuses',
+    // Status options
+    st_open:'Open', st_worsened:'Issue Has Worsened', st_ongoing:'Issue Is Ongoing',
+    st_fixed:'Issue Fixed', st_escalated:'Escalated To Municipality',
+    st_scheduled:'Scheduled For Service', st_wip:'Work In Progress',
+    // Update & feedback
+    update_title:'Update Report',
+    lbl_new_status:'New status',
+    lbl_note:'Additional note (optional)',
+    ph_note:'Describe what has changed...',
+    lbl_updated_by:'Your name (optional)',
+    btn_submit_update:'Submit Update',
+    feedback_title:'Leave Feedback',
+    lbl_rating:'How satisfied are you? (1–5 stars)',
+    lbl_resolved:'Was the issue resolved?',
+    lbl_comment:'Your comment',
+    ph_comment:'Tell us about your experience...',
+    btn_submit_feedback:'Submit Feedback',
+    // GPS
+    gps_getting:'Getting your location...',
+    gps_found:'Location found',
+    gps_error:'Could not get GPS location. Please type your address.',
+  },
+
+  ZU:{
+    logo:'CityMenderSA',
+    nav_home:'Ikhaya', nav_report:'Bika', nav_track:'Landelela', nav_list:'Yonke Imibiko',
+    footer_contact:'Xhumana',
+    hero_title:'Bika Futhi Ulandelele Izinkinga Zezinsiza',
+    hero_sub:'Siza imiphakathi yaseNingizimu Afrika ukubika ukuvuza kwamanzi, imigodi, izinkinga zikagesi nakho konke kumasipala ofanele.',
+    btn_report_here:'Bika Lapha',
+    btn_report_issue:'Bika Inkinga',
+    btn_track:'Landelela Umbiko',
+    btn_all_reports:'Yonke Imibiko',
+    lbl_total:'Imibiko Yonke', lbl_open:'Izinkinga Ezivulekile', lbl_fixed:'Izinkinga Ezisonjululwe',
+    form_title:'Thumela Umbiko Wokuhlinzekwa Kwezinsizakalo',
+    lbl_address:'Sesha ikheli lakho',
+    ph_address:'Faka igama lesถนn noma indawo...',
+    lbl_issue_type:'Khetha uhlobo lweNkinga',
+    lbl_issue_detail:'Khetha imininingwane yenkinga',
+    lbl_description:'Ulwazi olwengeziwe',
+    ph_description:'Chaza inkinga ngemininingwane ethe xaxa...',
+    lbl_municipality:'Faka umasipala wakho wasekhaya',
+    lbl_status:'Isimo',
+    lbl_photo:'Faka isithombe (okukhethwa)',
+    lbl_name:'Igama lakho (okukhethwa)',
+    ph_name:'isb. Thabo Mokoena',
+    lbl_whatsapp:'Inombolo ye-WhatsApp (izaziso)',
+    ph_whatsapp:'isb. 072 345 6789',
+    btn_submit:'Thumela Umbiko',
+    opt_select_type:'-- Khetha uhlobo --',
+    opt_select_detail:'-- Khetha uhlobo kuqala --',
+    opt_select_muni:'-- Khetha umasipala --',
+    track_title:'Landelela Umbiko Wakho',
+    lbl_ref:'Faka inombolo yakho yesibhalo',
+    ph_ref:'isb. CF-2841',
+    btn_track_now:'Landelela',
+    list_title:'Yonke Imibiko',
+    lbl_search_prov:'Sesha isifundazwe noma indawo...',
+    lbl_all_cat:'Zonke Izigaba',
+    lbl_all_status:'Zonke Izimo',
+    st_open:'Ivulekile', st_worsened:'Inkinga Yanda', st_ongoing:'Inkinga Iqhubeka',
+    st_fixed:'Inkinga Ilungisiwe', st_escalated:'Kuyiswe Kumasipala',
+    st_scheduled:'Kunezinhlelo Zensizakalo', st_wip:'Umsebenzi Uyaqhubeka',
+    update_title:'Buyekeza Umbiko',
+    lbl_new_status:'Isimo esisha',
+    lbl_note:'Inothi elengeziwe (okukhethwa)',
+    ph_note:'Chaza okushintshile...',
+    lbl_updated_by:'Igama lakho (okukhethwa)',
+    btn_submit_update:'Thumela Ukubuyekezwa',
+    feedback_title:'Shiya Impendulo',
+    lbl_rating:'Unelisekile kangakanani? (Izinkanyezi 1–5)',
+    lbl_resolved:'Inkinga ilungisiwe?',
+    lbl_comment:'Amazwi akho',
+    ph_comment:'Sitshele ngolwazi lwakho...',
+    btn_submit_feedback:'Thumela Impendulo',
+    gps_getting:'Sithola indawo yakho...',
+    gps_found:'Indawo itholjwe',
+    gps_error:'Yehlulekile ukuthola i-GPS. Bhala ikheli ngokwakho.',
+  },
+
+  XH:{
+    logo:'CityMenderSA',
+    nav_home:'Ikhaya', nav_report:'Bika', nav_track:'Landelela', nav_list:'Zonke Iingxelo',
+    footer_contact:'Qhagamshelana',
+    hero_title:'Bika Uze Ulandele Iingxaki Zoluntu',
+    hero_sub:'Sinceda uluntu lwaseMzantsi Afrika ukubika ukuvuza kwamanzi, imigodi, iingxaki zombane nokuninzi kumasipala ofanelekileyo.',
+    btn_report_here:'Bika Apha',
+    btn_report_issue:'Bika Ingxaki',
+    btn_track:'Landelela Ingxelo',
+    btn_all_reports:'Zonke Iingxelo',
+    lbl_total:'Iingxelo Zonke', lbl_open:'Iingxaki Ezivulekileyo', lbl_fixed:'Iingxaki Ezilungisiweyo',
+    form_title:'Thumela Ingxelo Yentolongo Yezinkonzo',
+    lbl_address:'Khangela idilesi yakho',
+    ph_address:'Faka igama lesitrato okanye indawo...',
+    lbl_issue_type:'Khetha uhlobo lwengxaki',
+    lbl_issue_detail:'Khetha iinkcukacha zengxaki',
+    lbl_description:'Ulwazi olongeziweyo',
+    ph_description:'Chaza ingxaki ngokuthe vetshe...',
+    lbl_municipality:'Faka umasipala wakho wendawo',
+    lbl_status:'Imeko',
+    lbl_photo:'Faka umfanekiso (ukhetho)',
+    lbl_name:'Igama lakho (ukhetho)',
+    ph_name:'umz. Thabo Mokoena',
+    lbl_whatsapp:'Inombolo ye-WhatsApp (izaziso)',
+    ph_whatsapp:'umz. 072 345 6789',
+    btn_submit:'Thumela Ingxelo',
+    opt_select_type:'-- Khetha uhlobo --',
+    opt_select_detail:'-- Khetha uhlobo kuqala --',
+    opt_select_muni:'-- Khetha umasipala --',
+    track_title:'Landelela Ingxelo Yakho',
+    lbl_ref:'Faka inombolo yakho yesalathiso',
+    ph_ref:'umz. CF-2841',
+    btn_track_now:'Landelela',
+    list_title:'Zonke Iingxelo',
+    lbl_search_prov:'Khangela phondo okanye indawo...',
+    lbl_all_cat:'Zonke Izihlomelo',
+    lbl_all_status:'Zonke Imeko',
+    st_open:'Ivulekile', st_worsened:'Ingxaki Yanda', st_ongoing:'Ingxaki Iqhuba',
+    st_fixed:'Ingxaki Ilungisiwe', st_escalated:'Kuyiwe Kumasipala',
+    st_scheduled:'Ihlelo Lonke Lenkonzo', st_wip:'Umsebenzi Uyaqhuba',
+    update_title:'Hlaziya Ingxelo',
+    lbl_new_status:'Imeko entsha',
+    lbl_note:'Inothi ezongeziweyo (ukhetho)',
+    ph_note:'Chaza okutshintshileyo...',
+    lbl_updated_by:'Igama lakho (ukhetho)',
+    btn_submit_update:'Thumela Uhlaziyo',
+    feedback_title:'Shiya Impendulo',
+    lbl_rating:'Unelisekile kangakanani? (1–5 iinkwenkwezi)',
+    lbl_resolved:'Ingxaki ilungisiwe?',
+    lbl_comment:'Amazwi akho',
+    ph_comment:'Sxelele ngamava akho...',
+    btn_submit_feedback:'Thumela Impendulo',
+    gps_getting:'Sifumana indawo yakho...',
+    gps_found:'Indawo ifunyenwe',
+    gps_error:'Ayikwazanga ukufumana i-GPS. Bhala idilesi ngokwakho.',
+  },
+
+  AF:{
+    logo:'CityMenderSA',
+    nav_home:'Tuis', nav_report:'Rapporteer', nav_track:'Volg', nav_list:'Alle Verslae',
+    footer_contact:'Kontak',
+    hero_title:'Rapporteer en Volg Diensleweringskwessies',
+    hero_sub:'Ons help Suid-Afrikaanse gemeenskappe om waterlekke, paaigange, kragprobleme en meer direk aan die regte munisipaliteit te rapporteer.',
+    btn_report_here:'Rapporteer Hier',
+    btn_report_issue:'Rapporteer Kwessie',
+    btn_track:'Volg Verslag',
+    btn_all_reports:'Alle Verslae',
+    lbl_total:'Totale Verslae', lbl_open:'Oop Kwessies', lbl_fixed:'Kwessies Opgelos',
+    form_title:'Dien \'n Diensleweringsverslag in',
+    lbl_address:'Soek jou adres',
+    ph_address:'Tik jou straatadres of voorstad...',
+    lbl_issue_type:'Kies kwessietipe',
+    lbl_issue_detail:'Kies die besonderhede van die kwessie',
+    lbl_description:'Bykomende inligting',
+    ph_description:'Beskryf die probleem in so veel besonderhede as moontlik...',
+    lbl_municipality:'Voer jou plaaslike munisipaliteit in',
+    lbl_status:'Status',
+    lbl_photo:'Voeg prentjie in (opsioneel)',
+    lbl_name:'Jou naam (opsioneel)',
+    ph_name:'bv. Thabo Mokoena',
+    lbl_whatsapp:'WhatsApp-nommer (vir opdaterings)',
+    ph_whatsapp:'bv. 072 345 6789',
+    btn_submit:'Dien Verslag in',
+    opt_select_type:'-- Kies kwessietipe --',
+    opt_select_detail:'-- Kies eers kwessietipe --',
+    opt_select_muni:'-- Kies munisipaliteit --',
+    track_title:'Volg Jou Verslag',
+    lbl_ref:'Voer jou verwysingsnommer in',
+    ph_ref:'bv. CF-2841',
+    btn_track_now:'Volg',
+    list_title:'Alle Verslae',
+    lbl_search_prov:'Soek provinsie of gebied...',
+    lbl_all_cat:'Alle Kategorieë',
+    lbl_all_status:'Alle Statusse',
+    st_open:'Oop', st_worsened:'Kwessie Het Vererger', st_ongoing:'Kwessie Gaan Voort',
+    st_fixed:'Kwessie Opgelos', st_escalated:'Geëskaleer Na Munisipaliteit',
+    st_scheduled:'Geskeduleer Vir Diens', st_wip:'Werk In Uitvoering',
+    update_title:'Dateer Verslag Op',
+    lbl_new_status:'Nuwe status',
+    lbl_note:'Bykomende nota (opsioneel)',
+    ph_note:'Beskryf wat verander het...',
+    lbl_updated_by:'Jou naam (opsioneel)',
+    btn_submit_update:'Dien Opdatering in',
+    feedback_title:'Laat Terugvoer',
+    lbl_rating:'Hoe tevrede is jy? (1–5 sterre)',
+    lbl_resolved:'Is die kwessie opgelos?',
+    lbl_comment:'Jou kommentaar',
+    ph_comment:'Vertel ons van jou ervaring...',
+    btn_submit_feedback:'Dien Terugvoer in',
+    gps_getting:'Kry jou ligging...',
+    gps_found:'Ligging gevind',
+    gps_error:'Kon nie GPS-ligging kry nie. Tik asseblief jou adres handmatig in.',
+  },
+
+  ST:{
+    logo:'CityMenderSA',
+    nav_home:'Lapeng', nav_report:'Tlaleha', nav_track:'Latela', nav_list:'Ditlaleho Tsohle',
+    footer_contact:'Ikopanya',
+    hero_title:'Tlaleha le Latela Mathata a Ditshebeletso',
+    hero_sub:'Re thusa baahi ba Afrika Boroa ho tlaleha ho lekanela metsi, maqeba a tsela, mathata a motlakase le tse ding ho mmuso o nepahetseng.',
+    btn_report_here:'Tlaleha Mona',
+    btn_report_issue:'Tlaleha Bothata',
+    btn_track:'Latela Tlaleho',
+    btn_all_reports:'Ditlaleho Tsohle',
+    lbl_total:'Ditlaleho Kaofela', lbl_open:'Mathata a Buletsweng', lbl_fixed:'Mathata a Rarollotsweng',
+    form_title:'Romela Tlaleho ya Ditshebeletso',
+    lbl_address:'Batla aterese ya hao',
+    ph_address:'Ngola lebitso la seterata kapa sebaka...',
+    lbl_issue_type:'Kgetha mofuta wa bothata',
+    lbl_issue_detail:'Kgetha dintlha tsa bothata',
+    lbl_description:'Tlhahisoleseding e eketsehileng',
+    ph_description:'Hlalosa bothata ka dintlha tse ngata...',
+    lbl_municipality:'Kenya mmuso wa hao wa lehae',
+    lbl_status:'Boemo',
+    lbl_photo:'Kenya setshwantsho (ho ikgethela)',
+    lbl_name:'Lebitso la hao (ho ikgethela)',
+    ph_name:'mohlala Thabo Mokoena',
+    lbl_whatsapp:'Nomoro ya WhatsApp (dipego)',
+    ph_whatsapp:'mohlala 072 345 6789',
+    btn_submit:'Romela Tlaleho',
+    opt_select_type:'-- Kgetha mofuta --',
+    opt_select_detail:'-- Kgetha mofuta pele --',
+    opt_select_muni:'-- Kgetha mmuso --',
+    track_title:'Latela Tlaleho ya Hao',
+    lbl_ref:'Kenya nomoro ya hao ya tšupiso',
+    ph_ref:'mohlala CF-2841',
+    btn_track_now:'Latela',
+    list_title:'Ditlaleho Tsohle',
+    lbl_search_prov:'Batla profensi kapa sebaka...',
+    lbl_all_cat:'Mefuta Yohle',
+    lbl_all_status:'Maemo Ohle',
+    st_open:'E Buletse', st_worsened:'Bothata bo Hlokolohile', st_ongoing:'Bothata bo Tswela Pele',
+    st_fixed:'Bothata bo Rarollotse', st_escalated:'Ho Isiwa ho Mmuso',
+    st_scheduled:'Ho Lekantswe Ditshebeletso', st_wip:'Mosebetsi o Tswela Pele',
+    update_title:'Ntjhafatsa Tlaleho',
+    lbl_new_status:'Boemo bo botjha',
+    lbl_note:'Lengolo le eketsehileng (ho ikgethela)',
+    ph_note:'Hlalosa se fetohileng...',
+    lbl_updated_by:'Lebitso la hao (ho ikgethela)',
+    btn_submit_update:'Romela Ntjhafatso',
+    feedback_title:'Siya Maikutlo',
+    lbl_rating:'O kgotsofetse hakae? (1–5 dinaledi)',
+    lbl_resolved:'Na bothata bo rarollotse?',
+    lbl_comment:'Maikutlo a hao',
+    ph_comment:'Re bolelle ka boiphihlelo ba hao...',
+    btn_submit_feedback:'Romela Maikutlo',
+    gps_getting:'Re fumana sebaka sa hao...',
+    gps_found:'Sebaka se fumanwe',
+    gps_error:'Ha se kgonahala ho fumana GPS. Ngola aterese ka seatla.',
+  },
+
+  TN:{
+    logo:'CityMenderSA',
+    nav_home:'Gae', nav_report:'Bega', nav_track:'Latelela', nav_list:'Dipego Tsotlhe',
+    footer_contact:'Ikopanya',
+    hero_title:'Bega le Latelela Mathata a Ditirelo',
+    hero_sub:'Re thusa baagi ba Aforika Borwa go bega mathata a metsi, ditsela, motheo o mogolo le tse dingwe go kgosi e maleba.',
+    btn_report_here:'Bega Mo',
+    btn_report_issue:'Bega Bothata',
+    btn_track:'Latelela Pegelo',
+    btn_all_reports:'Dipego Tsotlhe',
+    lbl_total:'Dipego Tsotlhe', lbl_open:'Mathata a Bulegileng', lbl_fixed:'Mathata a Rarollotsweng',
+    form_title:'Romela Pegelo ya Ditirelo',
+    lbl_address:'Batla aterese ya gago',
+    ph_address:'Kwala leina la seterata kgotsa lefelo...',
+    lbl_issue_type:'Tlhopha mofuta wa bothata',
+    lbl_issue_detail:'Tlhopha dintlha tsa bothata',
+    lbl_description:'Tshedimosetso e e oketsegileng',
+    ph_description:'Tlhalosa bothata ka botlalo...',
+    lbl_municipality:'Tsaya kgosi ya gago ya motse',
+    lbl_status:'Boemo',
+    lbl_photo:'Tsenya setshwantsho (go ikgethela)',
+    lbl_name:'Leina la gago (go ikgethela)',
+    ph_name:'mohlala Thabo Mokoena',
+    lbl_whatsapp:'Nomoro ya WhatsApp (dipego)',
+    ph_whatsapp:'mohlala 072 345 6789',
+    btn_submit:'Romela Pegelo',
+    opt_select_type:'-- Tlhopha mofuta --',
+    opt_select_detail:'-- Tlhopha mofuta pele --',
+    opt_select_muni:'-- Tlhopha kgosi --',
+    track_title:'Latelela Pegelo ya Gago',
+    lbl_ref:'Tsenya nomoro ya tšupiso ya gago',
+    ph_ref:'mohlala CF-2841',
+    btn_track_now:'Latelela',
+    list_title:'Dipego Tsotlhe',
+    lbl_search_prov:'Batla profense kgotsa lefelo...',
+    lbl_all_cat:'Mefuta Yotlhe',
+    lbl_all_status:'Maemo Otlhe',
+    st_open:'E Bulegileng', st_worsened:'Bothata bo Fetelela', st_ongoing:'Bothata bo Tswelela',
+    st_fixed:'Bothata bo Rarollotse', st_escalated:'Ho Isiwa Kgosing',
+    st_scheduled:'Go Rulagantswe Ditirelo', st_wip:'Tiro e Tswelela',
+    update_title:'Mpshafatsa Pegelo',
+    lbl_new_status:'Boemo bo bofsa',
+    lbl_note:'Tlelefouno e oketsegileng (go ikgethela)',
+    ph_note:'Tlhalosa se fetogileng...',
+    lbl_updated_by:'Leina la gago (go ikgethela)',
+    btn_submit_update:'Romela Mpshafatso',
+    feedback_title:'Tshela Kakanyo',
+    lbl_rating:'O kgotsofetse ga kana? (1–5 dinaledi)',
+    lbl_resolved:'Na bothata bo rarollotse?',
+    lbl_comment:'Mafoko a gago',
+    ph_comment:'Re bolele ka boitlhao jwa gago...',
+    btn_submit_feedback:'Romela Kakanyo',
+    gps_getting:'Re bona lefelo la gago...',
+    gps_found:'Lefelo le bonwe',
+    gps_error:'Go paletse go bona GPS. Kwala aterese ka seatla.',
+  },
+
+  SS:{nav_home:'Ekhaya',nav_report:'Bika',nav_track:'Landzela',nav_list:'Yonkhe Imibiko',logo:'CityMenderSA',footer_contact:'Xhumana',hero_title:'Bika Futsi Ulandzele Tindzawo Letiphosakele',hero_sub:'Sisita imiphakathi yaseNingizimu Afrika kubika tindzawo letiphosakele.',btn_report_here:'Bika Lapha',btn_report_issue:'Bika Indzaba',btn_track:'Landzela Umbiko',btn_all_reports:'Yonkhe Imibiko',lbl_total:'Yonkhe Imibiko',lbl_open:'Tindzawo Letivulekile',lbl_fixed:'Tindzawo Letisonjululwe',form_title:'Thumela Umbiko Wensebenti',lbl_address:'Sesha likheli lakho',ph_address:'Faka ligama lesitfulo...',lbl_issue_type:'Khetsa uhlobo lwendzaba',lbl_issue_detail:'Khetsa imininingwane yendzaba',lbl_description:'Lwati lolwengeziwe',ph_description:'Chaza indzaba...',lbl_municipality:'Faka umasipala wakho',lbl_status:'Simo',lbl_photo:'Faka setfombe (kukhetsa)',lbl_name:'Ligama lakho (kukhetsa)',ph_name:'isb. Thabo Mokoena',lbl_whatsapp:'Inombolo ye-WhatsApp',ph_whatsapp:'isb. 072 345 6789',btn_submit:'Thumela Umbiko',opt_select_type:'-- Khetsa uhlobo --',opt_select_detail:'-- Khetsa uhlobo kuqala --',opt_select_muni:'-- Khetsa umasipala --',track_title:'Landzela Umbiko Wakho',lbl_ref:'Faka inombolo yakho',ph_ref:'isb. CF-2841',btn_track_now:'Landzela',list_title:'Yonkhe Imibiko',lbl_search_prov:'Sesha ifundza...',lbl_all_cat:'Tonkhe Tinhlobo',lbl_all_status:'Tonkhe Timo',st_open:'Ivulekile',st_worsened:'Indzaba Yanda',st_ongoing:'Indzaba Iyaqhubeka',st_fixed:'Indzaba Ilungisiwe',st_escalated:'Kuyiswe Kumasipala',st_scheduled:'Kukhona Tinhlelelo',st_wip:'Umsebenzi Uyaqhubeka',update_title:'Buyekeza Umbiko',lbl_new_status:'Simo lesisha',lbl_note:'Inothi lelengeziwe',ph_note:'Chaza lokushintshile...',lbl_updated_by:'Ligama lakho',btn_submit_update:'Thumela Kubuyekezwa',feedback_title:'Shiya Impendvulo',lbl_rating:'Unelisekile kangakanani?',lbl_resolved:'Indzaba ilungisiwe?',lbl_comment:'Ematfuba akho',ph_comment:'Sitjele ngolwati lwakho...',btn_submit_feedback:'Thumela Impendvulo',gps_getting:'Sitfola indzawo yakho...',gps_found:'Indzawo itfolakele',gps_error:'Ayikwazanga GPS. Bhala likheli ngekwakho.'},
+
+  VE:{nav_home:'Hayani',nav_report:'Bika',nav_track:'Latelela',nav_list:'Mibiko Yothe',logo:'CityMenderSA',footer_contact:'Amba',hero_title:'Bika na u Latelela Vhudekede vha Mvelele',hero_sub:'Ri thusa vhadzulapo vha Afrika Tshipembe u bika vhudekede kha masipala.',btn_report_here:'Bika Afha',btn_report_issue:'Bika Vhudekede',btn_track:'Latelela Mubiko',btn_all_reports:'Mibiko Yothe',lbl_total:'Mibiko Yothe',lbl_open:'Vhudekede Vhu Vhulayo',lbl_fixed:'Vhudekede Vhu Thomiswaho',form_title:'Romela Mubiko wa Mvelele',lbl_address:'Toda kherefu yau',ph_address:'Nwala dzina la tsila...',lbl_issue_type:'Khetha mofuta wa vhudekede',lbl_issue_detail:'Khetha vhunzhi ha vhudekede',lbl_description:'Mafhungo a engedzeaho',ph_description:'Ṱalutshedza vhudekede...',lbl_municipality:'Nwala masipala wau wa hayani',lbl_status:'Ṱoḓea',lbl_photo:'Dzhia tshifanyiso (u khetha)',lbl_name:'Dzina lau (u khetha)',ph_name:'nz. Thabo Mokoena',lbl_whatsapp:'Nomboro ya WhatsApp',ph_whatsapp:'nz. 072 345 6789',btn_submit:'Romela Mubiko',opt_select_type:'-- Khetha mofuta --',opt_select_detail:'-- Khetha mofuta u thoma --',opt_select_muni:'-- Khetha masipala --',track_title:'Latelela Mubiko Wau',lbl_ref:'Nwala nomboro yau ya tshisupiso',ph_ref:'nz. CF-2841',btn_track_now:'Latelela',list_title:'Mibiko Yothe',lbl_search_prov:'Toda vundu kana fhethu...',lbl_all_cat:'Mifuta Yothe',lbl_all_status:'Zwiimo Zwi Zwi',st_open:'I Vhulayo',st_worsened:'Vhudekede Vhu Engedzeaho',st_ongoing:'Vhudekede Vhu Tswelelaho',st_fixed:'Vhudekede Vhu Thomaho',st_escalated:'Hu Isiwa Kha Masipala',st_scheduled:'Hu Dzudzanyiwa',st_wip:'Mushumo U Tswelelaho',update_title:'Khwinifhadza Mubiko',lbl_new_status:'Ṱoḓea ntswa',lbl_note:'Nota i engedzeaho',ph_note:'Ṱalutshedza zwi shandukaho...',lbl_updated_by:'Dzina lau',btn_submit_update:'Romela u Khwinifhadzwa',feedback_title:'Siya Mafhungo',lbl_rating:'Ni takala vhukuma? (1–5)',lbl_resolved:'Vhudekede vhu thomaho?',lbl_comment:'Mafhungo au',ph_comment:'Ri vhudze nga ṱhoho yau...',btn_submit_feedback:'Romela Mafhungo',gps_getting:'Ri toda fhethu hau...',gps_found:'Fhethu ho wanala',gps_error:'A hu ngo kona u wana GPS. Nwala kherefu.'},
+
+  TS:{nav_home:'Kaya',nav_report:'Bika',nav_track:'Landzelela',nav_list:'Mibiko Yonse',logo:'CityMenderSA',footer_contact:'Khalarata',hero_title:'Bika na ku Landzelela Swiphiqo swa Ntirho',hero_sub:'Hi pfuna vanhu va Afrika Dzonga ku bika swiphiqo eka masipala lowu faneleke.',btn_report_here:'Bika Laha',btn_report_issue:'Bika Xiphiqo',btn_track:'Landzelela Mibiko',btn_all_reports:'Mibiko Yonse',lbl_total:'Mibiko Yonse',lbl_open:'Swiphiqo leswi Pfukeke',lbl_fixed:'Swiphiqo leswi Lungisiweke',form_title:'Romela Mibiko ya Ntirho',lbl_address:'Lava aderesi ya wena',ph_address:'Tsala vito ra street...',lbl_issue_type:'Hlawula mhaka ya xiphiqo',lbl_issue_detail:'Hlawula mhungu wa xiphiqo',lbl_description:'Mhungu wo engeteleka',ph_description:'Hlawulekisa xiphiqo...',lbl_municipality:'Tsala masipala wa wena',lbl_status:'Xiyimo',lbl_photo:'Tsaka xifaniso (ku hlawula)',lbl_name:'Vito ra wena (ku hlawula)',ph_name:'xik. Thabo Mokoena',lbl_whatsapp:'Nomboro ya WhatsApp',ph_whatsapp:'xik. 072 345 6789',btn_submit:'Romela Mibiko',opt_select_type:'-- Hlawula mhaka --',opt_select_detail:'-- Hlawula mhaka kusocha --',opt_select_muni:'-- Hlawula masipala --',track_title:'Landzelela Mibiko Ya Wena',lbl_ref:'Tsala nomboro ya wena',ph_ref:'xik. CF-2841',btn_track_now:'Landzelela',list_title:'Mibiko Yonse',lbl_search_prov:'Lava provinsiya...',lbl_all_cat:'Mikathekhori Yonse',lbl_all_status:'Swiyimo Swa Ku Hambana',st_open:'Yi Pfukile',st_worsened:'Xiphiqo xi Tsenene',st_ongoing:'Xiphiqo xi Tswelela',st_fixed:'Xiphiqo xi Lungisiwile',st_escalated:'Ku Yisiwa eMasipaleni',st_scheduled:'Ku Hlela Ntirho',st_wip:'Ntirho Wu Tswelela',update_title:'Antswisa Mibiko',lbl_new_status:'Xiyimo xintshwa',lbl_note:'Nota yo engeteleka',ph_note:'Hlawulekisa leswi shandukeke...',lbl_updated_by:'Vito ra wena',btn_submit_update:'Romela ku Antswisiwa',feedback_title:'Siya Mabyelo',lbl_rating:'U tsakile ku ringana ka wena? (1–5)',lbl_resolved:'Xiphiqo xi lungisiwile?',lbl_comment:'Malembe ya wena',ph_comment:'Hi hlamusela ntokoto...',btn_submit_feedback:'Romela Mabyelo',gps_getting:'Hi lava ndhawu ya wena...',gps_found:'Ndhawu yi tiwile',gps_error:'A yi koti ku kuma GPS. Tsala aderesi.'},
+
+  NR:{nav_home:'Ikhaya',nav_report:'Bika',nav_track:'Landelela',nav_list:'Yonke Imibiko',logo:'CityMenderSA',footer_contact:'Xhumana',hero_title:'Bika Uze Ulandele Iinkinga Zomphakathi',hero_sub:'Sisiza imiphakathi yeSewula Afrika ukubika iinkinga.',btn_report_here:'Bika Lapha',btn_report_issue:'Bika Inkinga',btn_track:'Landelela Umbiko',btn_all_reports:'Yonke Imibiko',lbl_total:'Yonke Imibiko',lbl_open:'Iinkinga Ezivulekileyo',lbl_fixed:'Iinkinga Ezilungisiweyo',form_title:'Thumela Umbiko',lbl_address:'Sesha ikheli lakho',ph_address:'Faka igama lesitrato...',lbl_issue_type:'Khetha uhlobo lwenkinga',lbl_issue_detail:'Khetha imininingwane',lbl_description:'Ulwazi olwengeziwe',ph_description:'Chaza inkinga...',lbl_municipality:'Faka umasipala wakho',lbl_status:'Isimo',lbl_photo:'Faka isithombe',lbl_name:'Igama lakho',ph_name:'isb. Thabo Mokoena',lbl_whatsapp:'Inombolo ye-WhatsApp',ph_whatsapp:'isb. 072 345 6789',btn_submit:'Thumela Umbiko',opt_select_type:'-- Khetha uhlobo --',opt_select_detail:'-- Khetha uhlobo kuqala --',opt_select_muni:'-- Khetha umasipala --',track_title:'Landelela Umbiko Wakho',lbl_ref:'Faka inombolo yakho',ph_ref:'isb. CF-2841',btn_track_now:'Landelela',list_title:'Yonke Imibiko',lbl_search_prov:'Sesha isifundazwe...',lbl_all_cat:'Zonke Izigaba',lbl_all_status:'Zonke Izimo',st_open:'Ivulekile',st_worsened:'Inkinga Yanda',st_ongoing:'Inkinga Iqhubeka',st_fixed:'Inkinga Ilungisiwe',st_escalated:'Kuyiswe Kumasipala',st_scheduled:'Kunezinhlelo',st_wip:'Umsebenzi Uyaqhubeka',update_title:'Buyekeza Umbiko',lbl_new_status:'Isimo esisha',lbl_note:'Inothi elengeziwe',ph_note:'Chaza okushintshile...',lbl_updated_by:'Igama lakho',btn_submit_update:'Thumela Ukubuyekezwa',feedback_title:'Shiya Impendulo',lbl_rating:'Unelisekile kangakanani?',lbl_resolved:'Inkinga ilungisiwe?',lbl_comment:'Amazwi akho',ph_comment:'Sitshele ngolwazi lwakho...',btn_submit_feedback:'Thumela Impendulo',gps_getting:'Sithola indawo yakho...',gps_found:'Indawo itholakele',gps_error:'Ayikwazanga GPS. Bhala ikheli ngokwakho.'},
+
+  NS:{nav_home:'Gae',nav_report:'Begišo',nav_track:'Latelela',nav_list:'Dipego Kamoka',logo:'CityMenderSA',footer_contact:'Ikopanye',hero_title:'Begišo le Latelela Mathata a Ditirelo',hero_sub:'Re thuša setšhaba sa Afrika Borwa go begišo mathata go masepala.',btn_report_here:'Bega Fa',btn_report_issue:'Bega Bothata',btn_track:'Latelela Pegelo',btn_all_reports:'Dipego Kamoka',lbl_total:'Dipego Kamoka',lbl_open:'Mathata a Bulegilego',lbl_fixed:'Mathata a Rarollotšwego',form_title:'Romela Pegelo ya Ditirelo',lbl_address:'Batla aterese ya gago',ph_address:'Ngwala leina la seterata...',lbl_issue_type:'Kgetha mofuta wa bothata',lbl_issue_detail:'Kgetha dintlha tša bothata',lbl_description:'Tshedimošo ye eketsegilego',ph_description:'Hlaloša bothata...',lbl_municipality:'Tsenya masepala wa gago',lbl_status:'Boemo',lbl_photo:'Tsenya setšwantsho',lbl_name:'Leina la gago',ph_name:'mohlala Thabo Mokoena',lbl_whatsapp:'Nomoro ya WhatsApp',ph_whatsapp:'mohlala 072 345 6789',btn_submit:'Romela Pegelo',opt_select_type:'-- Kgetha mofuta --',opt_select_detail:'-- Kgetha mofuta pele --',opt_select_muni:'-- Kgetha masepala --',track_title:'Latelela Pegelo ya Gago',lbl_ref:'Tsenya nomoro ya tšupišo ya gago',ph_ref:'mohlala CF-2841',btn_track_now:'Latelela',list_title:'Dipego Kamoka',lbl_search_prov:'Batla profense...',lbl_all_cat:'Mefuta Yohle',lbl_all_status:'Maemo Ohle',st_open:'E Bulegilego',st_worsened:'Bothata bo Eketsegile',st_ongoing:'Bothata bo Tšwelaago',st_fixed:'Bothata bo Rarollotšwe',st_escalated:'Go Isiwa go Masepala',st_scheduled:'Go Rulaganyw Ditirelo',st_wip:'Mošomo o Tšwelaago',update_title:'Mpshafatša Pegelo',lbl_new_status:'Boemo bo bofsa',lbl_note:'Ngongorego ye eketsegilego',ph_note:'Hlaloša se fetogilego...',lbl_updated_by:'Leina la gago',btn_submit_update:'Romela Mpshafatšo',feedback_title:'Tšea Kakanyo',lbl_rating:'O kgotsofetše go kai? (1–5)',lbl_resolved:'Na bothata bo rarollotšwe?',lbl_comment:'Mafoko a gago',ph_comment:'Re bolele ka boitlhao jwa gago...',btn_submit_feedback:'Romela Kakanyo',gps_getting:'Re bona lefelo la gago...',gps_found:'Lefelo le bonywe',gps_error:'Go paletše go bona GPS. Ngwala aterese ka seatla.'},
+};
+
+var currentLang = localStorage.getItem('cf_lang') || 'EN';
+
+function t(key) {
+    var l = LANG[currentLang] || LANG['EN'];
+    return l[key] || LANG['EN'][key] || key;
+}
+
+function applyTranslations() {
+    // Translate all elements with data-t attribute
+    document.querySelectorAll('[data-t]').forEach(function(el) {
+        var key = el.getAttribute('data-t');
+        var val = t(key);
+        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+            el.placeholder = val;
+        } else if (el.tagName === 'OPTION') {
+            el.textContent = val;
+        } else {
+            el.textContent = val;
+        }
+    });
+    // Translate placeholders
+    document.querySelectorAll('[data-ph]').forEach(function(el) {
+        el.placeholder = t(el.getAttribute('data-ph'));
+    });
+    // Update html lang attribute
+    document.getElementById('html-root').lang = currentLang.toLowerCase();
+}
+
+function toggleLang(e) {
+    e.stopPropagation();
+    document.getElementById('lang-dropdown').classList.toggle('open');
+    document.getElementById('lang-btn').classList.toggle('open');
+}
+
+document.addEventListener('click', function() {
+    document.getElementById('lang-dropdown').classList.remove('open');
+    document.getElementById('lang-btn').classList.remove('open');
+});
+
+function setLang(code, el) {
+    currentLang = code;
+    localStorage.setItem('cf_lang', code);
+    document.getElementById('lang-label').textContent = code;
+    document.querySelectorAll('.lang-item').forEach(function(x) { x.classList.remove('sel'); });
+    el.classList.add('sel');
+    document.getElementById('lang-dropdown').classList.remove('open');
+    document.getElementById('lang-btn').classList.remove('open');
+    applyTranslations();
+}
+
+// Run on page load
+window.addEventListener('DOMContentLoaded', function() {
+    // Restore saved language button highlight
+    var saved = localStorage.getItem('cf_lang') || 'EN';
+    document.getElementById('lang-label').textContent = saved;
+    document.querySelectorAll('.lang-item').forEach(function(el) {
+        if (el.textContent.trim() === {
+            EN:'English',ZU:'isiZulu',XH:'isiXhosa',AF:'Afrikaans',
+            ST:'Sesotho',TN:'Setswana',SS:'Siswati',VE:'Tshivenda',
+            TS:'Xitsonga',NR:'isiNdebele',NS:'Sepedi'
+        }[saved]) {
+            el.classList.add('sel');
+        }
+    });
+    applyTranslations();
+});
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>
